@@ -19,7 +19,9 @@ gameState = {
 			name: "player one",
 			type: "human",
 			position: 0,
-			score: 0,
+			handScore: 0,
+			gameScore: 0,
+			selectedCard: '',
 			hand: [],
 			receivedPass: [],
 			tricks: []
@@ -28,7 +30,9 @@ gameState = {
 			name: "player two",
 			type: "human",
 			position: 1,
-			score: 0,
+			handScore: 0,
+			gameScore: 0,
+			selectedCard: '',
 			hand: [],
 			receivedPass: [],
 			tricks: []
@@ -37,7 +41,9 @@ gameState = {
 			name: "player three",
 			type: "human",
 			position: 2,
-			score: 0,
+			handScore: 0,
+			gameScore: 0,
+			selectedCard: '',
 			hand: [],
 			receivedPass: [],
 			tricks: []
@@ -46,7 +52,9 @@ gameState = {
 			name: "player four",
 			type: "human",
 			position: 3,
-			score: 0,
+			handScore: 0,
+			gameScore: 0,
+			selectedCard: '',
 			hand: [],
 			receivedPass: [],
 			tricks: []
@@ -135,10 +143,10 @@ const doDumpQueen = (playedCards) => {
 // * AI choose card to play
 //		Stub function - choose one random playable card
 //		Strategy: lowest card of most populous suit, unless hearts broken, then lowest heart
-const chooseCardAI = (strategy, playedCards, playerNum) => {
+const selectCardAI = (strategy, playedCards, playerNum) => {
 	let hand = [...gameState.players[playerNum].hand]
 	let chosenCard = '';
-	if(doDumpQueen(playedCards) && hand.includes('s12')) 
+	if(doDumpQueen(playedCards) && hand.includes('s12')) chosenCard = 's12'
 	if (strategy === 'low'){
 		if(gameState.heartsBroken){
 			// filter hand for hearts
@@ -146,16 +154,25 @@ const chooseCardAI = (strategy, playedCards, playerNum) => {
 			// choose lowest
 			// splice / remove chosen card by indexOf
 		}else{
-
+			//	let longestSuit
+			//  loop c, s, d
+			//		Filter for c,s,d
+			//		if length > longestSuit
+			//			longestSuit = length
+			//			sort
+			//			chosenCard = [0]
 		}
-
 	}
-
+	// update gameState hand and selected card
 	return chosenCard
 
 }
 
+// * Score Hand
+//		Calculate score of hand based on
+const scoreHand = (tricks) => {
 
+}
 
 
 
@@ -170,7 +187,35 @@ const gameCycle = () => {
 		dealGame([...deck])
 		displayHands(gameState)  // TODO - remove, for dev only
 		passCards()
-		gameState.maxScore = playHand( setFirstPlayer() )
+		let activePlayer = setFirstPlayer();
+		for(let trickNum = 0; trickNum < 13; trickNum++){
+			
+			//  loop players
+			//		if activePlayer is User
+			//			userSelectCard()
+			//			display selected card
+			//		else if activePlayer is human
+			//			wait for update
+			//			display selected card
+			//		else
+			//			selectCardAI('low', playedCards, playerNum)
+			//			display selected card
+			//		endif
+			//		
+			//		incrememt activePlayer
+			//	endloop
+			//	
+			// 	activePlayer = assignTrick(playedCards)
+		}
+
+		if(Math.max(gameState.players.map(player => player.handScore)) === 25){
+			// update gameState for moon shot
+			celebrateMoonShot()
+		}else{
+			//	update gameState for regular scoring
+		}
+		gameState.maxScore = Math.max(gameState.players.map(player => player.score))
+		
 	}
 	gameWinEvent()
 }
