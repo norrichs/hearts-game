@@ -1,16 +1,16 @@
 // * GameState
 deck = [
-	'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10', 'c11', 'c12', 'c13',
-	's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11', 's12', 's13',
-	'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd12', 'd13',
-	'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'h9', 'h10', 'h11', 'h12', 'h13'
+	'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10', 'c11', 'c12', 'c13', 'c14',
+	's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11', 's12', 's13', 's14',
+	'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd12', 'd13', 'd14',
+	'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'h9', 'h10', 'h11', 'h12', 'h13', 'h14'
 ];
 
 // TODO Game State will be stored on database with a GET at the begining of each turn and a PUT at the end
 gameState = {
-	turns : 0,
+	turn : 0,
 	player : "player1",
-	heartsLed: false,
+	heartsBroken: false,
 	hand: 0,
 	winScore: 100,
 	playerOrder: [ 0, 1, 2, 3],
@@ -21,6 +21,7 @@ gameState = {
 			position: 0,
 			score: 0,
 			hand: [],
+			receivedPass: [],
 			tricks: []
 		},
 		{
@@ -29,6 +30,7 @@ gameState = {
 			position: 1,
 			score: 0,
 			hand: [],
+			receivedPass: [],
 			tricks: []
 		},
 		{
@@ -37,6 +39,7 @@ gameState = {
 			position: 2,
 			score: 0,
 			hand: [],
+			receivedPass: [],
 			tricks: []
 		},
 		{
@@ -45,6 +48,7 @@ gameState = {
 			position: 3,
 			score: 0,
 			hand: [],
+			receivedPass: [],
 			tricks: []
 		}
 
@@ -103,6 +107,57 @@ const playHand = (firstPlayerNumber) => {
 	
 	
 }
+
+
+
+
+
+///////////////////////////////////////
+// AI Functions
+///////////////////////////////////////
+// * AI pass card
+//		Stub function - choose 3 random cards to pass
+const passCardAI = (playerNum) => {
+	let hand = [...gameState.players[playerNum].hand];
+	const cardsToPass = [];
+	for (let i = 0; i < 3; i++){
+		let randIndex = Math.floor( Math.random * hand.length);
+		cardsToPass.push(hand.randIndex);
+		hand.splice(randIndex, 1)
+	}
+	return cardsToPass;
+}
+
+const doDumpQueen = (playedCards) => {
+
+}
+
+// * AI choose card to play
+//		Stub function - choose one random playable card
+//		Strategy: lowest card of most populous suit, unless hearts broken, then lowest heart
+const chooseCardAI = (strategy, playedCards, playerNum) => {
+	let hand = [...gameState.players[playerNum].hand]
+	let chosenCard = '';
+	if(doDumpQueen(playedCards) && hand.includes('s12')) 
+	if (strategy === 'low'){
+		if(gameState.heartsBroken){
+			// filter hand for hearts
+			// sort hearts
+			// choose lowest
+			// splice / remove chosen card by indexOf
+		}else{
+
+		}
+
+	}
+
+	return chosenCard
+
+}
+
+
+
+
 
 // * Game cycle
 const gameCycle = () => {
