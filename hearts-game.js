@@ -1,5 +1,7 @@
-// * GameState
-deck = [
+// * Global Variables
+
+const dbInterval = 500;
+const deck = [
 	'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10', 'c11', 'c12', 'c13', 'c14',
 	's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11', 's12', 's13', 's14',
 	'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd12', 'd13', 'd14',
@@ -7,13 +9,13 @@ deck = [
 ];
 
 // TODO Game State will be stored on database with a GET at the begining of each turn and a PUT at the end
-gameState = {
+const gameState = {
 	turn : 0,
-	player : "player1",
 	heartsBroken: false,
 	hand: 0,
 	winScore: 100,
 	playerOrder: [ 0, 1, 2, 3],
+	playedCards: [null, null, null, null],		// Contains objects: {player: Number, card: String}
 	players : [
 		{
 			name: "player one",
@@ -21,7 +23,7 @@ gameState = {
 			position: 0,
 			handScore: 0,
 			gameScore: 0,
-			selectedCard: '',
+			selectedCard: null,
 			hand: [],
 			receivedPass: [],
 			tricks: []
@@ -32,7 +34,7 @@ gameState = {
 			position: 1,
 			handScore: 0,
 			gameScore: 0,
-			selectedCard: '',
+			selectedCard: null,
 			hand: [],
 			receivedPass: [],
 			tricks: []
@@ -43,7 +45,7 @@ gameState = {
 			position: 2,
 			handScore: 0,
 			gameScore: 0,
-			selectedCard: '',
+			selectedCard: null,
 			hand: [],
 			receivedPass: [],
 			tricks: []
@@ -54,7 +56,7 @@ gameState = {
 			position: 3,
 			handScore: 0,
 			gameScore: 0,
-			selectedCard: '',
+			selectedCard: null,
 			hand: [],
 			receivedPass: [],
 			tricks: []
@@ -62,10 +64,6 @@ gameState = {
 
 	]
 }
-
-
-
-
 
 
 // * Init Game
@@ -101,20 +99,40 @@ const displayHands = (g) => {
 	console.log(`player${p.position} hand:`, p.hand)
 }
 
-// * Set First Player
-//		Assigns first status to player w/ 2 of clubs in hand
-const setFirstPlayer = () => {
+// * Set First Player (HAND)
+//		Assigns first player status to player w/ 2 of clubs in hand
+const setFirstPlayerOfHand = () => {
 	for(let i = 0; i < 4; i++){
 		if ( gameState.players[i].hand.includes('c2') ) return i;
 	}
 }
 
+// * Assign Trick
+//		Assigns trick based on cards played
+const setFirstPlayerOfTrick = (playedCards) => {
 
-// * Hand Cycle
-const playHand = (firstPlayerNumber) => {
-	
-	
 }
+
+
+// * Deselect cards
+//		Re-set card selections to null
+// TODO convert to DB PUT
+const deselectCards = () => {
+	// getGameState
+	for(player of gameState.players){
+		player.selectedCard = null;
+	}
+	// setGameState
+
+}
+
+
+
+// // * Hand Cycle
+// const playHand = (firstPlayerNumber) => {
+	
+	
+// }
 
 
 
@@ -146,30 +164,43 @@ const doDumpQueen = (playedCards) => {
 const selectCardAI = (strategy, playedCards, playerNum) => {
 	let hand = [...gameState.players[playerNum].hand]
 	let chosenCard = '';
-	if(doDumpQueen(playedCards) && hand.includes('s12')) chosenCard = 's12'
+	const ledSuit = playedCards[0].substr(0,1)
+	
+	
 	if (strategy === 'low'){
-		if(gameState.heartsBroken){
-			// filter hand for hearts
-			// sort hearts
-			// choose lowest
-			// splice / remove chosen card by indexOf
+		if(playedCards.length === 0){
+			//	if heartsBroken && lowest heart < 8
+			//		choose lowest heart
+			//	else
+			//		choose lowest of longest suit
+		}else if(playedCards.length === 1 || playedCards.length === 2){
+			// 	if hasLedSuit
+			//		choose highest of led suit under highest played of led suit
+			//	else
+			//		if(doDumpQueen(playedCards) && hand.includes('s12')) chosenCard = 's12'
+			//		else if haveHearts
+			//			choose high heart
+			//		else
+			//			choose highest of longest suit
 		}else{
-			//	let longestSuit
-			//  loop c, s, d
-			//		Filter for c,s,d
-			//		if length > longestSuit
-			//			longestSuit = length
-			//			sort
-			//			chosenCard = [0]
+			// 	if hasLedSuit
+			//		if heartsPlayed && haveLowerCard
+			//			choose highest under highest played of led suit
+			//		else
+			//			choose highest of led suit
+			//	else
+			//		if(doDumpQueen(playedCards) && hand.includes('s12')) chosenCard = 's12'
+			//		else if haveHearts
+			//			choose highest heart
+			//		else
+			//			choose highest of longest suit
 		}
 	}
 	// update gameState hand and selected card
-	return chosenCard
-
 }
 
 // * Score Hand
-//		Calculate score of hand based on
+//		Calculate score of hand
 const scoreHand = (tricks) => {
 
 }
@@ -187,33 +218,47 @@ const gameCycle = () => {
 		dealGame([...deck])
 		displayHands(gameState)  // TODO - remove, for dev only
 		passCards()
-		let activePlayer = setFirstPlayer();
-		for(let trickNum = 0; trickNum < 13; trickNum++){
-			
-			//  loop players
-			//		if activePlayer is User
-			//			userSelectCard()
-			//			display selected card
-			//		else if activePlayer is human
-			//			wait for update
-			//			display selected card
-			//		else
-			//			selectCardAI('low', playedCards, playerNum)
-			//			display selected card
-			//		endif
-			//		
-			//		incrememt activePlayer
-			//	endloop
+		let firstPlayer = setFirstPlayerOfHand();
+		let activePlayer = firstPlayer;
+		// Hand Cycle
+		for(let trickNum = 0; trickNum < 13; trickNum++){		
+			//  loop player turns
+			for(let playNum = 0; playNum < 4; playNum++){
+				activePlayer = (playNum + firstPlayer) % 4;
+
+				//		if activePlayer is User
+				//			userSelectCard()
+				//			getGameState()
+				//		else if activePlayer is human
+							let waitOnPlayer = true;
+							while (waitOnPlayer){
+								setTimeout( getGameState, dbInterval )
+								if(gameState.players[activePlayer].selectedCard !== null){
+									waitOnPlayer = false
+								}
+							}
+				//			display selected card  (frontend)
+				//		else
+				//			selectCardAI('low', playedCards, playerNum)
+				//			getGameState()
+				//			display selected card
+				//		endif
+	
+	
+	
+				if(Math.max(gameState.players.map(player => player.handScore)) === 25){
+					// update gameState for moon shot
+					celebrateMoonShot()
+					break;
+				}		
+			}
+
+
 			//	
-			// 	activePlayer = assignTrick(playedCards)
+			firstPlayer = assignTrick()
+			deselectCards()
 		}
 
-		if(Math.max(gameState.players.map(player => player.handScore)) === 25){
-			// update gameState for moon shot
-			celebrateMoonShot()
-		}else{
-			//	update gameState for regular scoring
-		}
 		gameState.maxScore = Math.max(gameState.players.map(player => player.score))
 		
 	}
