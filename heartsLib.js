@@ -20,7 +20,28 @@ const dealGame = (gameState, deck) => {
 		gameState.players[card % 4].hand.push( deck[i] )
 		deck.splice(i,1)
 	}
+	//Sort Hands
+	gameState.players.map(p=>{
+		p.hand.sort()
+	})
 	return gameState
+}
+
+
+///////////////////////////////////////
+// AI Functions
+///////////////////////////////////////
+// * AI pass card
+//		Stub function - choose 3 random cards to pass
+const passCardAI = (playerNum) => {
+	let hand = [...gameState.players[playerNum].hand];
+	const cardsToPass = [];
+	for (let i = 0; i < 3; i++){
+		let randIndex = Math.floor( Math.random * hand.length);
+		cardsToPass.push(hand.randIndex);
+		hand.splice(randIndex, 1)
+	}
+	return cardsToPass;
 }
 
 module.exports = {deck, dealGame}

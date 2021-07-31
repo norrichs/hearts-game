@@ -2,6 +2,8 @@
 	"turn" : 0,
 	"heartsBroken" : false,
 	"handNum" : 0,
+	"maxScore": 0,
+	"leader": 0,
 	"winScore": 100,
 	"playerOrder": [ 0, 1, 2, 3],
 	"playedCards": [ "", "", "", ""],
@@ -14,6 +16,7 @@
 			"gameScore": 0,
 			"selectedCard": "",
 			"hand": [],
+			"passes": [],
 			"receivedPass": [],
 			"tricks": []
 		},
@@ -25,6 +28,7 @@
 			"gameScore": 0,
 			"selectedCard": "",
 			"hand": [],
+			"passes": [],
 			"receivedPass": [],
 			"tricks": []
 		},
@@ -36,6 +40,7 @@
 			"gameScore": 0,
 			"selectedCard": "",
 			"hand": [],
+			"passes": [],
 			"receivedPass": [],
 			"tricks": []
 		},
@@ -47,6 +52,7 @@
 			"gameScore": 0,
 			"selectedCard": "",
 			"hand": [],
+			"passes": [],
 			"receivedPass": [],
 			"tricks": []
 		}

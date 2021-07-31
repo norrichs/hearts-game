@@ -50,12 +50,11 @@ router.get('/seed', async (req, res) => {
 		msg: "game initialized",
 		data: gameState
 	})
-	
+
 })
 
 
 
-module.exports = router;
 
 // Deal Hand
 router.get("/deal/:id", async (req, res) => {
@@ -69,3 +68,48 @@ router.get("/deal/:id", async (req, res) => {
 		data: gameState
 	}) 
 })
+
+// AI pass cards
+router.get("/passAi/:id", async (req, res) => {
+	let gameState = await GameState.findById(req.params.id)
+	console.log('got gamestate')
+	for(let player = 0; player < 4; player++){
+		console.log(gameState.players[player].playerType)
+		if(gameState.players[player].playerType === 'computer'){
+			for(let i=0; i<3; i++){
+				let randIndex = Math.floor( Math.random() * gameState.players[player].hand.length)
+				gameState.players[player].passes.push(gameState.players[player].hand[randIndex])
+				gameState.players[player].hand.splice(randIndex,1)
+			}
+			console.log(`player ${player} passes:`,gameState.players[player].passes)
+		}
+	}
+
+
+
+
+
+	// gameState.players = gameState.players.map((player)=>{
+	// 	if(player.playerType === "computer"){
+	// 		const hand = [...player.hand]
+	// 		for(let j=0; j<3; j++){
+	// 			console.log('picking for', i,player.playerType)
+	// 			let randIndex = Math.floor( Math.random * hand.length)
+	// 			player.passes.push(hand[randIndex])
+	// 			hand.splice(randIndex,1)
+	// 		}
+	// 	}
+	// 	player.hand = [...hand]
+	// 	return player
+	// })
+	gameState = await GameState.findByIdAndUpdate(req.params.id, gameState, {new: true})
+	res.json({
+		status: 200,
+		data: gameState
+	})
+})
+
+
+
+
+module.exports = router;

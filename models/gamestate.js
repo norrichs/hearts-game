@@ -4,6 +4,8 @@ const gameStateSchema = new Schema({
 	turn : { type: Number },
 	heartsBroken: Boolean,
 	handNum: Number,
+	maxScore: Number,
+	leader: Number,
 	winScore: Number,
 	playerOrder: [Number],
 	playedCards: [String],		// Contains objects: {player: Number, card: String}
@@ -15,6 +17,7 @@ const gameStateSchema = new Schema({
 		gameScore: Number,
 		selectedCard: String,
 		hand: [String],
+		passes: [String],
 		receivedPass: [String],
 		tricks: [String]
 	}]
