@@ -1,5 +1,7 @@
 {
 	"turn" : 0,
+	"phase": "start",
+	"activePlayer": 0,
 	"heartsBroken" : false,
 	"handNum" : 0,
 	"maxScore": 0,

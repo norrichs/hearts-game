@@ -2,6 +2,8 @@ const mongoose = require('../db/connection')
 const  {Schema, model} = mongoose
 const gameStateSchema = new Schema({
 	turn : { type: Number },
+	phase: String,
+	activePlayer: Number,
 	heartsBroken: Boolean,
 	handNum: Number,
 	maxScore: Number,

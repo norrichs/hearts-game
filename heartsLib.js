@@ -5,6 +5,16 @@ const deck = [
 	'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'h9', 'h10', 'h11', 'h12', 'h13', 'h14'
 ];
 
+const passMap = {
+	turn: [
+		{ player: [ 2, 3, 0, 1 ]},
+		{ player: [ 3, 0, 1, 2 ]},
+		{ player: [ 1, 2, 3, 0 ]},
+		null
+	]
+}
+
+
 // * Shuffle and deal
 //		Select a random card from the deck array, removing
 //		that card.  Do so till deck is empty, distributing cards
@@ -28,20 +38,40 @@ const dealGame = (gameState, deck) => {
 }
 
 
+
+
+
+
 ///////////////////////////////////////
 // AI Functions
 ///////////////////////////////////////
 // * AI pass card
 //		Stub function - choose 3 random cards to pass
-const passCardAI = (playerNum) => {
-	let hand = [...gameState.players[playerNum].hand];
-	const cardsToPass = [];
-	for (let i = 0; i < 3; i++){
-		let randIndex = Math.floor( Math.random * hand.length);
-		cardsToPass.push(hand.randIndex);
-		hand.splice(randIndex, 1)
+
+const selectAIPassCards = (gameState) => {
+	// Check Hand number for passing status 
+	//   (pass turn 0, 1, 2, not 3, 4, 5, 6, not 7, etc)
+	if(gameState.handNum % 4 < 3){
+		for(let player = 0; player < 4; player++){
+			if(gameState.players[player].playerType === 'computer'){
+				for(let i=0; i<3; i++){
+					let randIndex = Math.floor( Math.random() * gameState.players[player].hand.length)
+					gameState.players[player].passes.push(gameState.players[player].hand[randIndex])
+					gameState.players[player].hand.splice(randIndex,1)
+				}
+				console.log(`player ${player} selects to pass:`,gameState.players[player].passes)
+			}
+		}
 	}
-	return cardsToPass;
+	//  return updated gamestate w/ AI passes selected
+	//	if no pass, returning original game state
+	return gameState
 }
 
-module.exports = {deck, dealGame}
+
+
+
+
+
+
+module.exports = {deck, dealGame, passMap, selectAIPassCards}
