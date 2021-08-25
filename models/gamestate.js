@@ -1,11 +1,12 @@
 const mongoose = require('../db/connection')
 const  {Schema, model} = mongoose
 const gameStateSchema = new Schema({
-	turn : { type: Number },
+	turn : Number,
 	phase: String,
 	activePlayer: Number,
 	heartsBroken: Boolean,
 	handNum: Number,
+	trickNum: Number,
 	maxScore: Number,
 	leader: Number,
 	winScore: Number,
@@ -18,7 +19,10 @@ const gameStateSchema = new Schema({
 		handScore: Number,
 		gameScore: Number,
 		selectedCard: String,
-		hand: [String],
+		hand: [{
+			id: String,
+			selected: Boolean
+		}],
 		passes: [String],
 		receivedPass: [String],
 		tricks: [String]

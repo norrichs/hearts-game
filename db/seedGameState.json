@@ -4,11 +4,12 @@
 	"activePlayer": 0,
 	"heartsBroken" : false,
 	"handNum" : 0,
+	"trickNum" : 0,
 	"maxScore": 0,
 	"leader": 0,
 	"winScore": 100,
 	"playerOrder": [ 0, 1, 2, 3],
-	"playedCards": [ "", "", "", ""],
+	"playedCards": [],
 	"players" : [
 		{
 			"name" : "player one",

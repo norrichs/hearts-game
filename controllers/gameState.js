@@ -60,7 +60,7 @@ router.put('/passCards/:id', async (req, res) => {
 			player.hand.push(gameState.players[ receiveFrom ].passes.pop())
 			player.hand.push(gameState.players[ receiveFrom ].passes.pop())
 			player.hand.push(gameState.players[ receiveFrom ].passes.pop())
-			player.hand.sort()
+			player.hand.sort(hearts.compareCards)
 			return player
 		})
 		gameState.phase = "tricks"
@@ -70,9 +70,22 @@ router.put('/passCards/:id', async (req, res) => {
 			if(player.hand.includes('c2')) gameState.activePlayer = i
 		})
 
+		if(gameState.players[gameState.activePlayer].playerType === computer){
+			hearts.pickCard(gameState, gameState.activePlayer, 'random')
+		}
+
 	}
 	gameState = await GameState.findByIdAndUpdate(req.params.id, gameState, {new: true})
 	console.log('player hands', gameState.players[0].hand, gameState.players[1].hand, gameState.players[2].hand, gameState.players[3].hand)
+	res.json({
+		status: 200,
+		data: gameState
+	})
+})
+
+router.put('/playCard/:id', async (req, res) => {
+	let gameState = await GameState.findByIdAndUpdate(req.params.id, req.body, {new: true})
+
 	res.json({
 		status: 200,
 		data: gameState
@@ -103,6 +116,7 @@ router.get("/deal/:id", async (req, res) => {
 	// Deal random cards to each player hand
 	gameState = hearts.dealGame(gameState, [...hearts.deck])
 	gameState.phase = "pass"
+	gameState.trickNum = 1;
 	// Select cards to pass for all computer players
 	gameState = hearts.selectAIPassCards(gameState)
 
@@ -112,6 +126,14 @@ router.get("/deal/:id", async (req, res) => {
 		status: 200,
 		data: gameState
 	}) 
+})
+
+// Resolve a card selection in player's hand
+router.get("/selectCard/:gameId/:user/:clickedCardId", async (req, res) => {
+	console.log('select card router parameters', req.params)
+	let gameState = await GameState.findById(req.params.gameId)
+	console.log('db gameState pre card selection', gameState)
+	// Apply game logic
 })
 
 

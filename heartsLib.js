@@ -27,15 +27,67 @@ const dealGame = (gameState, deck) => {
 		// Get random index based un-dealt deck size
 		const i = Math.floor(Math.random() * (52-card)) 
 		// Push to player hand and remove from deck
-		gameState.players[card % 4].hand.push( deck[i] )
+		gameState.players[card % 4].hand.push( {id: deck[i], selected: false} )
 		deck.splice(i,1)
 	}
+
+	console.log('deck is dealt, now sorting')
 	//Sort Hands
 	gameState.players.map(p=>{
-		p.hand.sort()
+		p.hand.sort(compareCards)
 	})
 	return gameState
 }
+
+const compareCards = (a,b) => {
+	if(a.id[0] === b.id[0]){
+		// compare values
+		return parseInt(a.id.substr(1)) < parseInt(b.id.substr(1)) ? -1 : 1
+	}else{
+		// compare suits
+		const order = ['c', 'd', 's', 'h']
+		return order.indexOf(a.id[0]) < order.indexOf(b.id[0]) ? -1 : 1
+	}
+}
+
+const pickCard = (gameState, player, strategy) => {
+	const ledSuit = gameState
+}
+
+const selectPlayerCard = (user, clickedCardId, gS) => {
+	// Handle player selection of a card from their hand
+	// Validity logic is game phase and state dependent
+
+	const i = gS.players[user].hand.map((c)=> c.id).indexOf(clickedCardId)
+	const card = gS.players[user].hand[i]
+	const passes = gS.players[user].passes
+	const hand = gS.players[user].hand
+
+	if(gS.phase === 'pass'){
+		// Pass phase
+		// 		Allow up to three cards to be selected
+		// 		Deselect oldest selected card if attempting to select a fourth
+		// 		Deselect if card if already selected
+		if(passes.includes(clickedCardId)){
+			// remove card from passes and set to unselected in hand
+			passes.splice(passes.indexOf(clickedCardId))
+			hand[i].selected = false;
+		}else if(passes.length === 3){
+			// remove oldest entry from passes and set card to selected in hand
+		}else{
+			// add to passes and set card to selected in hand
+		}
+	}else if(gS.phase === 'trick'){
+		// Trick Phase
+		// 		Allow up to one card to be selected
+		// 		Must have same suit as led suit, unless hand does not include cards of led suit
+		// 		If first card of trick, must be not hearts, unless hearts are broken
+		console.log('selecting for trick' +  clickedCardId)
+	}
+	
+
+}
+
 
 
 
@@ -74,4 +126,4 @@ const selectAIPassCards = (gameState) => {
 
 
 
-module.exports = {deck, dealGame, passMap, selectAIPassCards}
+module.exports = {deck, dealGame, passMap, selectAIPassCards, compareCards}
