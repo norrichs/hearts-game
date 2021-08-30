@@ -6,13 +6,14 @@
 	"handNum" : 0,
 	"trickNum" : 0,
 	"maxScore": 0,
+	"firstPlayer": 0,
 	"leader": 0,
 	"winScore": 100,
 	"playerOrder": [ 0, 1, 2, 3],
 	"playedCards": [],
 	"players" : [
 		{
-			"name" : "player one",
+			"name" : "player 0",
 			"playerType" : "human",
 			"position" : 0,
 			"handScore": 0,
@@ -24,7 +25,7 @@
 			"tricks": []
 		},
 		{
-			"name" : "player two",
+			"name" : "player 1",
 			"playerType" : "computer",
 			"position" : 0,
 			"handScore": 0,
@@ -36,7 +37,7 @@
 			"tricks": []
 		},
 		{
-			"name" : "player three",
+			"name" : "player 2",
 			"playerType" : "computer",
 			"position" : 0,
 			"handScore": 0,
@@ -48,7 +49,7 @@
 			"tricks": []
 		},
 		{
-			"name" : "player four",
+			"name" : "player 3",
 			"playerType" : "computer",
 			"position" : 0,
 			"handScore": 0,

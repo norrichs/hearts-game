@@ -9,9 +9,13 @@ const gameStateSchema = new Schema({
 	trickNum: Number,
 	maxScore: Number,
 	leader: Number,
+	firstPlayer: Number,
 	winScore: Number,
 	playerOrder: [Number],
-	playedCards: [String],		// Contains objects: {player: Number, card: String}
+	playedCards: [{
+		id: String,
+		selected: Boolean
+	}],		// Contains objects: {player: Number, card: String}
 	players : [{
 		name: String,
 		playerType: String,
