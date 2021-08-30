@@ -255,36 +255,45 @@ const isValid = (user, clickedCardId, gS) => {
 	// 		user
 	// );
 
+	/*
+		Validity pseudocode
+		IF activePlayer is not user 		//false , only select when turn
+		IF no played cards
+			IF trick number === 1
+				IF selection is c2			//true
+				ELSE						//false
+			ELSEIF heartsbroken				//true 
+			ELSEIF selection.suit != hearts	//true
+		ELSE
+			IF selection.suit === led suit	//true
+			ELSEIF no cards in hand of led  //true
+			ELSE							//false
+
+	*/
+
 	if (parseInt(gS.activePlayer) !== parseInt(user)) {
 		return false;
 	}
 	if (gS.playedCards.length === 0) {
+		console.log("leading");
 		if (gS.trickNum === 1) {
-			if (clickedCardId === "c2") {
-				return true;
-			} else {
-				return false;
-			}
-		}
-		if (clickedCardId === "c2") {
-			return true;
-		} else if (gS.heartsBroken) {
-			return true;
-		} else if (clickedCardId[0] !== "h") {
-			return true;
-		}
+			if (clickedCardId === "c2") return true;
+			else return false;
+		} else if (gS.heartsBroken) return true;
+		else if (clickedCardId[0] !== "h") return true;
 	} else {
-		if (clickedCardId[0] === gS.playedCards[0][0]) {
-			return true;
-		} else if (
+		console.log("following");
+		if (clickedCardId[0] === gS.playedCards[0].id[0]) return true;
+		else if (
 			gS.players[user].hand.filter(
-				(c) => c.id[0] === gS.playedCards[0][0]
+				(c) => c.id[0] === gS.playedCards[0].id[0]
 			).length === 0
 		) {
+			console.log('played, filtered user hand',gS.playedCards,
+				gS.players[user].hand.filter(c=>(c.id[0] === gS.playedCards[0].id[0]))
+			);
 			return true;
-		} else {
-			return false;
-		}
+		} else return false;
 	}
 };
 
@@ -392,5 +401,5 @@ module.exports = {
 	compareCards,
 	AIplayCard,
 	isValid,
-	selectCard
+	selectCard,
 };
