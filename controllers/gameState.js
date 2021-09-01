@@ -79,7 +79,7 @@ router.get("/seed", async (req, res) => {
 			msg: "game initialized",
 			data: gameState,
 		});
-	}catch{
+	}catch(error){
 		res.status(400).json(error)
 	}
 });
