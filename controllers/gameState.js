@@ -72,12 +72,16 @@ router.get("/playCard/:gameId/:user", async (req, res) => {
 // Initialize Game Instance
 router.get("/seed", async (req, res) => {
 	console.log("initializing game");
-	const gameState = await GameState.create(gameStateInit);
-	res.json({
-		status: 200,
-		msg: "game initialized",
-		data: gameState,
-	});
+	try{
+		const gameState = await GameState.create(gameStateInit);
+		res.json({
+			status: 200,
+			msg: "game initialized",
+			data: gameState,
+		});
+	}catch{
+		res.status(400).json(error)
+	}
 });
 
 // Deal Hand
