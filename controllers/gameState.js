@@ -80,7 +80,8 @@ router.get("/seed", async (req, res) => {
 			data: gameState,
 		});
 	}catch(error){
-		res.status(400).json(error)
+		console.log(error)
+		res.status(400).json({error})
 	}
 });
 
