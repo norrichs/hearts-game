@@ -9,6 +9,7 @@ const gameStateSchema = new Schema({
 	trickNum: Number,
 	maxScore: Number,
 	leader: Number,
+	mainUser: Number,
 	firstPlayer: Number,
 	winScore: Number,
 	playerOrder: [Number],

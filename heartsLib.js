@@ -259,6 +259,10 @@ const scoreTricks = (trickArray) => {
 	);
 };
 
+// Transfers user-selected card to playedCards array
+// TODO - REFACTOR - move evalTrick and AIplayCycle calls out of function
+// 		trigger by poll-call from 'main' user
+
 const userPlayCard = (gS, user) => {
 	const hand = gS.players[user].hand
 	const passes = gS.players[user].passes

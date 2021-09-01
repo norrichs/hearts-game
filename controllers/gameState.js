@@ -8,25 +8,20 @@ const hearts = require("../heartsLib.js");
 
 // Get Gamestate
 //	TODO configure alt SHOW route if multiple games allowed on server e.g. leaderboard, etc
-router.get("/getState/:gameId", async (req, res) => {
-	const gameState = await GameState.findById(req.params.gameId);
+router.get("/getState/:gameId/:user", async (req, res) => {
+	const gS = await GameState.findById(req.params.gameId);
+	console.log('getState user ' + req.params.user)
+	// Trigger game progress if user is main user
+	if (gS.mainUser === req.params.user){
+		console.log('main' + gS.mainUser)
+		console.log('**** getState - progress game')
+		gS = hearts.gameCycle(gS)
+	}
 	res.json({
 		status: 200,
-		data: gameState,
+		data: gS,
 	});
 });
-
-// TODO
-//	1 Set active player at end of pass-cycle
-//  2 Set active player at end of trick
-
-// router.get("/passCards/:gameId", async (req,res)=>{
-// 	console.log('hit pass cards route stub')
-// 	res.json({
-// 		status: 200,
-// 		msg: 'blank'
-// 	})
-// })
 
 router.get("/passCards/:gameId", async (req, res) => {
 	console.log("passCards route");
@@ -44,27 +39,22 @@ router.get("/passCards/:gameId", async (req, res) => {
 	});
 });
 
-// TODO refactor this route to transfer game logic to heartsLib.js
+// Play user's selected card
 router.get("/playCard/:gameId/:user", async (req, res) => {
-	// console.log('Playing card from user', req.params.user)
-	console.time("playCard");
 	// Get current gameState
 	let gS = await GameState.findById(req.params.gameId);
-
+	// pass the selected card into playCards array
 	hearts.userPlayCard(gS, req.params.user);
-
 	// Sync database with current changes related to playing card
 	gS = await GameState.findByIdAndUpdate(req.params.gameId, gS, {
 		new: true,
 	});
 	console.log(
-		"newly played cards",
-		gS.playedCards,
-		"pass queue",
+		"  playCard: newly played cards" +
+		gS.playedCards +
+		"pass queue" +
 		gS.players[req.params.user].passes
 	);
-	console.timeEnd("playCard");
-
 	res.json({
 		status: 200,
 		data: gS,
@@ -83,15 +73,17 @@ router.get("/seed", async (req, res) => {
 });
 
 // Deal Hand
+// TODO separate deal and AIselect functions
+// REFACTOR so that dealHand responds without AIselect
+//		frontend will need to receive the response and then bounce back a request
+//		to "take next step" -> gameCycle method?
 router.get("/deal/:gameId", async (req, res) => {
 	let gameState = await GameState.findById(req.params.gameId);
 	console.log("state", gameState);
 	// Deal random cards to each player hand
 	gameState = hearts.dealHand(gameState, [...hearts.deck]);
-
 	// Select cards to pass for all computer players
 	gameState = hearts.AISelectPassCards(gameState);
-
 	// Write dealt and pass-selected game state to DB and respond with up-to-date state
 	gameState = await GameState.findByIdAndUpdate(
 		req.params.gameId,
