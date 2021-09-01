@@ -15,8 +15,8 @@
 	"players" : [
 		{
 			"name" : "player 0",
-			"playerType" : "computer",
-			"strategy" : "random",
+			"playerType" : "human",
+			"strategy" : "human",
 			"position" : 0,
 			"handScore": 0,
 			"gameScore": 0,
