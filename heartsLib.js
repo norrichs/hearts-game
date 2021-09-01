@@ -249,15 +249,6 @@ const selectPlayerCard = (user, clickedCardId, gS) => {
 	}
 };
 
-const scoreTricks = (trickArray) => {
-	// given an array of tricks, return 1pt per heart and 13pts for the queen of spades
-
-	// console.log("      scoreTricks array", trickArray);
-	return (
-		trickArray.filter((c) => c.id[0] === "h").length +
-		(trickArray.map((c) => c.id).includes("s12") ? 13 : 0)
-	);
-};
 
 // Transfers user-selected card to playedCards array
 // TODO - REFACTOR - move evalTrick and AIplayCycle calls out of function
@@ -270,7 +261,7 @@ const userPlayCard = (gS, user) => {
 	gS.playedCards.push(...hand.splice(hand.map(c=>c.id).indexOf(passes[0]), 1))
 	gS.players[user].passes = []
 	// console.log('pre update', gS.playedCards)
-
+	
 	// Set up next action
 	if(gS.playedCards.length === 4){
 		console.log('played 4, time to eval')
@@ -283,9 +274,19 @@ const userPlayCard = (gS, user) => {
 		console.log('AI cycle complete.  current active player', gS.activePlayer)
 	}
 
-
+	
 	return gS
 }
+
+const scoreTricks = (trickArray) => {
+	// given an array of tricks, return 1pt per heart and 13pts for the queen of spades
+
+	// console.log("      scoreTricks array", trickArray);
+	return (
+		trickArray.filter((c) => c.id[0] === "h").length +
+		(trickArray.map((c) => c.id).includes("s12") ? 13 : 0)
+	);
+};
 
 const isMoonShot = (gS) => {
 	// console.log(
@@ -538,12 +539,14 @@ const AISelectPassCards = (gameState) => {
 	return gameState;
 };
 
-const AIplayCycle = (gS, strategy) => {
-	let activePlayerType = gS.players[gS.activePlayer].playerType;
+const AIplayCycle = (gS) => {
+	let activePlayer = gS.players[gS.activePlayer]
+	let activePlayerType = activePlayer.playerType;
+	let strategy = activePlayer.strategy
 	while (activePlayerType === "computer") {
 		console.log(
 			"  AIplayCycle: picking card for",
-			gS.players[gS.activePlayer].name
+			activePlayer.name
 		);
 		gS = AIplayCard(gS, strategy);
 		if (gS.playedCards.length === 4) {
@@ -555,7 +558,10 @@ const AIplayCycle = (gS, strategy) => {
 			// else return
 		} else {
 			gS.activePlayer = (gS.activePlayer + 1) % 4; // TODO adjust so that active player is trick taker
-			activePlayerType = gS.players[gS.activePlayer].playerType;
+			activePlayer = gS.players[gS.activePlayer]
+			activePlayerType = activePlayer.playerType;
+			strategy = activePlayer.strategy
+			console.log('AIplayCycle type', activePlayerType, 'player', activePlayer)
 		}
 	}
 	return gS;
@@ -564,7 +570,6 @@ const AIplayCycle = (gS, strategy) => {
 const AIplayCard = (gS, strategy) => {
 	// let gS = gameState
 	const p = gS.players[gS.activePlayer];
-	const led = gS.playedCards.length === 0 ? null : gS.playedCards[0][0];
 	// reset selections
 	p.hand = p.hand.map((c) => {
 		c.selected = false;
@@ -580,7 +585,12 @@ const AIplayCard = (gS, strategy) => {
 			isValid(gS.activePlayer, c.id, gS)
 		);
 		// get ID of a random card from the valid plays
-		const pickedCardId = validCards[randOfSize(validCards.length)].id;
+		let pickedCardId
+		try{
+			pickedCardId = validCards[randOfSize(validCards.length)].id;
+		}catch{
+			console.log('failed to pick card from valid', validCards, 'with hand', gS.players[gS.activePlayer].hand, 'for player', gS.activePlayer)
+		}
 
 		// get index of that card in the hand
 		const pickedCardIndex = gS.players[gS.activePlayer].hand
@@ -598,6 +608,12 @@ const AIplayCard = (gS, strategy) => {
 	return gS;
 };
 
+// TODO - transfer all 'sequential game steps' to only be called from this function, which will act as 'traffic director'
+// TODO - implement with very minimal game-logic in-function (push out to helper functions)
+const gameCycle = (gS) => {
+
+}
+
 module.exports = {
 	deck,
 	dealHand,
@@ -611,4 +627,5 @@ module.exports = {
 	AISelectPassCards,
 	AIplayCard,
 	AIplayCycle,
+	gameCycle
 };

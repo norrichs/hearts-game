@@ -16,6 +16,7 @@
 		{
 			"name" : "player 0",
 			"playerType" : "human",
+			"strategy" : "human",
 			"position" : 0,
 			"handScore": 0,
 			"gameScore": 0,
@@ -28,6 +29,7 @@
 		{
 			"name" : "player 1",
 			"playerType" : "computer",
+			"strategy" : "random",
 			"position" : 0,
 			"handScore": 0,
 			"gameScore": 0,
@@ -40,6 +42,7 @@
 		{
 			"name" : "player 2",
 			"playerType" : "computer",
+			"strategy" : "random",
 			"position" : 0,
 			"handScore": 0,
 			"gameScore": 0,
@@ -52,6 +55,7 @@
 		{
 			"name" : "player 3",
 			"playerType" : "computer",
+			"strategy" : "random",
 			"position" : 0,
 			"handScore": 0,
 			"gameScore": 0,
