@@ -29,7 +29,10 @@ const gameStateSchema = new Schema({
 		}],
 		passes: [String],
 		receivedPass: [String],
-		tricks: [String]
+		tricks: [{
+			id: String,
+			selected: Boolean
+		}]
 	}]
 })
 
