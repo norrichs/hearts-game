@@ -7,6 +7,7 @@
 	"trickNum" : 0,
 	"maxScore": 0,
 	"firstPlayer": 0,
+	"mainUser": 0,
 	"leader": 0,
 	"winScore": 100,
 	"playerOrder": [ 0, 1, 2, 3],
@@ -15,6 +16,7 @@
 		{
 			"name" : "player 0",
 			"playerType" : "human",
+			"strategy" : "human",
 			"position" : 0,
 			"handScore": 0,
 			"gameScore": 0,
@@ -27,6 +29,7 @@
 		{
 			"name" : "player 1",
 			"playerType" : "computer",
+			"strategy" : "random",
 			"position" : 0,
 			"handScore": 0,
 			"gameScore": 0,
@@ -39,6 +42,7 @@
 		{
 			"name" : "player 2",
 			"playerType" : "computer",
+			"strategy" : "random",
 			"position" : 0,
 			"handScore": 0,
 			"gameScore": 0,
@@ -51,6 +55,7 @@
 		{
 			"name" : "player 3",
 			"playerType" : "computer",
+			"strategy" : "random",
 			"position" : 0,
 			"handScore": 0,
 			"gameScore": 0,

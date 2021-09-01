@@ -9,6 +9,7 @@ const gameStateSchema = new Schema({
 	trickNum: Number,
 	maxScore: Number,
 	leader: Number,
+	mainUser: Number,
 	firstPlayer: Number,
 	winScore: Number,
 	playerOrder: [Number],
@@ -18,7 +19,8 @@ const gameStateSchema = new Schema({
 	}],		// Contains objects: {player: Number, card: String}
 	players : [{
 		name: String,
-		playerType: String,
+		playerType: String,	//'human' or 'computer'
+		strategy: String, 	// named computer strategies - 'random', 'shooter', etc.  or 'human'
 		position: Number,
 		handScore: Number,
 		gameScore: Number,

@@ -249,6 +249,38 @@ const selectPlayerCard = (user, clickedCardId, gS) => {
 	}
 };
 
+// Transfers user-selected card to playedCards array
+// TODO - REFACTOR - move evalTrick and AIplayCycle calls out of function
+// 		trigger by poll-call from 'main' user
+
+const userPlayCard = (gS, user) => {
+	const hand = gS.players[user].hand;
+	const passes = gS.players[user].passes;
+	// Splice selected card from hand and push to playedCards
+	gS.playedCards.push(
+		...hand.splice(hand.map((c) => c.id).indexOf(passes[0]), 1)
+	);
+	gS.players[user].passes = [];
+	// console.log('pre update', gS.playedCards)
+
+	// Set up next action
+	if (gS.playedCards.length === 4) {
+		console.log("played 4, time to eval");
+		gS = evalTrick(gS);
+	} else {
+		console.log("time to do some AI players");
+		gS.activePlayer = (gS.activePlayer + 1) % 4;
+		// console.log('/playCard/ calling AIplayCycle for player: ', gS.activePlayer)
+		gS = AIplayCycle(gS, "random");
+		console.log(
+			"AI cycle complete.  current active player",
+			gS.activePlayer
+		);
+	}
+
+	return gS;
+};
+
 const scoreTricks = (trickArray) => {
 	// given an array of tricks, return 1pt per heart and 13pts for the queen of spades
 
@@ -273,7 +305,7 @@ const isMoonShot = (gS) => {
 // 	cards per passing map
 //
 const evalPass = (gS) => {
-	console.log('evalPass hand #', gS.handNum)
+	console.log("evalPass hand #", gS.handNum);
 	// Check if all players have selected passes, handle exchanges if so.
 	let passCardsTotal = gS.players.reduce((acc, p) => {
 		return (acc += p.passes.length);
@@ -286,9 +318,7 @@ const evalPass = (gS) => {
 			const donor = gS.players[passMap.turn[t].player[i]];
 
 			donor.passes.forEach((id) => {
-				const srcIndex = donor.hand
-					.map((c) => c.id)
-					.indexOf(id);
+				const srcIndex = donor.hand.map((c) => c.id).indexOf(id);
 				const passingCard = donor.hand.splice(srcIndex, 1)[0];
 				console.log(
 					"  passing:",
@@ -368,7 +398,12 @@ const evalTrick = (gS) => {
 	const winner =
 		(gS.firstPlayer + gS.playedCards.map((c) => c.id).indexOf(topCard)) % 4;
 
-	console.log("winner", winner, "current tricks", gS.players[winner].tricks.length);
+	console.log(
+		"winner",
+		winner,
+		"current tricks",
+		gS.players[winner].tricks.length
+	);
 
 	// Move played cards to winner's tricks array
 	gS.players[winner].tricks = [
@@ -414,8 +449,8 @@ const evalTrick = (gS) => {
 		// gS.heartsBroken
 		// gS.handNum
 		gS.trickNum = gS.trickNum + 1;
-		gS.maxScore = Math.max(gS.players.map(p=>parseInt(p.gameScore))),
-		gS.firstPlayer = winner;
+		(gS.maxScore = Math.max(gS.players.map((p) => parseInt(p.gameScore)))),
+			(gS.firstPlayer = winner);
 		// leader: 0,
 		// winScore": 100,
 		// playerOrder: [ 0, 1, 2, 3],
@@ -481,42 +516,60 @@ const randOfSize = (size) => Math.floor(Math.random() * size);
 // * AI pass card
 //		Stub function - choose 3 random cards to pass
 
-const selectAIPassCards = (gameState) => {
+const AISelectPassCards = (gS) => {
 	// Check Hand number for passing status
 	//   (pass turn 0, 1, 2, not 3, 4, 5, 6, not 7, etc)
 	const protoHand = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-	if (gameState.handNum % 4 < 3) {
-		for (let player = 0; player < 4; player++) {
-			if (gameState.players[player].playerType === "computer") {
-				let hand = [...protoHand];
-				for (let i = 0; i < 3; i++) {
-					// Remove an element from the protohand, using that primitive as an index
-					let randIndex = hand.splice(randOfSize(hand.length), 1)[0];
-					// Set the card at the index to be selected and ad it's id to the passes array
-					gameState.players[player].passes.push(
-						gameState.players[player].hand[randIndex].id
+	const limit = 1;
+	let counter = 0;
+
+	if (gS.handNum % 4 < 3) {
+		// TODO refactor to use named 'donor', and only do one per function
+		gS.players.map((donor) => {
+			if (donor.playerType === "computer" && donor.passes.length === 0) {
+				if (counter < limit) {
+					counter += 1;
+					let hand = [...protoHand];
+					for (let i = 0; i < 3; i++) {
+						// Remove an element from the protohand, using that primitive as an index
+						let randIndex = hand.splice(
+							randOfSize(hand.length),
+							1
+						)[0];
+						// Set the card at the index to be selected and ad it's id to the passes array
+						donor.passes.push(donor.hand[randIndex].id);
+						donor.hand[randIndex].selected = true;
+					}
+					console.log(
+						`    - AIselectPassCards - ${donor.name} new passes:${donor.passes}`
 					);
-					gameState.players[player].hand[randIndex].selected = true;
-				}
+				} else
+					console.log(
+						`    - AIselectPassCards - ${donor.name} old passes:${donor.passes}`
+					);
+			} else
 				console.log(
-					`player ${player} selects to pass:`,
-					gameState.players[player].passes
+					`    - AIselectPassCards - ${donor.name} ${
+						donor.playerType === "human"
+							? "human pass " + donor.passes
+							: "old passes " + donor.passes
+					}`
 				);
-			}
-		}
+
+			return donor;
+		});
 	}
-	//  return updated gamestate w/ AI passes selected
+	//  return updated gamestate w/ a single AI passes selected
 	//	if no pass, returning original game state
-	return gameState;
+	return gS;
 };
 
-const AIplayCycle = (gS, strategy) => {
-	let activePlayerType = gS.players[gS.activePlayer].playerType;
+const AIplayCycle = (gS) => {
+	let activePlayer = gS.players[gS.activePlayer];
+	let activePlayerType = activePlayer.playerType;
+	let strategy = activePlayer.strategy;
 	while (activePlayerType === "computer") {
-		console.log(
-			"  AIplayCycle: picking card for",
-			gS.players[gS.activePlayer].name
-		);
+		console.log("  AIplayCycle: picking card for", activePlayer.name);
 		gS = AIplayCard(gS, strategy);
 		if (gS.playedCards.length === 4) {
 			console.log("time to eval");
@@ -527,7 +580,15 @@ const AIplayCycle = (gS, strategy) => {
 			// else return
 		} else {
 			gS.activePlayer = (gS.activePlayer + 1) % 4; // TODO adjust so that active player is trick taker
-			activePlayerType = gS.players[gS.activePlayer].playerType;
+			activePlayer = gS.players[gS.activePlayer];
+			activePlayerType = activePlayer.playerType;
+			strategy = activePlayer.strategy;
+			console.log(
+				"AIplayCycle type",
+				activePlayerType,
+				"player",
+				activePlayer
+			);
 		}
 	}
 	return gS;
@@ -536,7 +597,6 @@ const AIplayCycle = (gS, strategy) => {
 const AIplayCard = (gS, strategy) => {
 	// let gS = gameState
 	const p = gS.players[gS.activePlayer];
-	const led = gS.playedCards.length === 0 ? null : gS.playedCards[0][0];
 	// reset selections
 	p.hand = p.hand.map((c) => {
 		c.selected = false;
@@ -552,7 +612,19 @@ const AIplayCard = (gS, strategy) => {
 			isValid(gS.activePlayer, c.id, gS)
 		);
 		// get ID of a random card from the valid plays
-		const pickedCardId = validCards[randOfSize(validCards.length)].id;
+		let pickedCardId;
+		try {
+			pickedCardId = validCards[randOfSize(validCards.length)].id;
+		} catch {
+			console.log(
+				"failed to pick card from valid",
+				validCards,
+				"with hand",
+				gS.players[gS.activePlayer].hand,
+				"for player",
+				gS.activePlayer
+			);
+		}
 
 		// get index of that card in the hand
 		const pickedCardIndex = gS.players[gS.activePlayer].hand
@@ -570,16 +642,38 @@ const AIplayCard = (gS, strategy) => {
 	return gS;
 };
 
+// TODO - transfer all 'sequential game steps' to only be called from this function, which will act as 'traffic director'
+// TODO - implement with very minimal game-logic in-function (push out to helper functions)
+const gameCycle = (gS) => {
+	console.log(" - gameCycle");
+	// Traffic control
+	if (gS.phase === "pass") {
+		// 	PASSES
+		console.log("   - pass");
+		gS = AISelectPassCards(gS);
+	} else if (gS.phase === "trick") {
+		//	PLAYS - each time pick card for next computer player
+		console.log("   - trick");
+	} else {
+		//  EVAL trick
+		console.log("   - eval?");
+	}
+
+	return gS;
+};
+
 module.exports = {
 	deck,
 	dealHand,
 	passMap,
-	selectAIPassCards,
 	compareCards,
-	AIplayCard,
 	isValid,
 	evalTrick,
 	evalPass,
 	selectCard,
+	userPlayCard,
+	AISelectPassCards,
+	AIplayCard,
 	AIplayCycle,
+	gameCycle,
 };
