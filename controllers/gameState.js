@@ -8,15 +8,23 @@ const hearts = require("../heartsLib.js");
 
 // Get Gamestate
 //	TODO configure alt SHOW route if multiple games allowed on server e.g. leaderboard, etc
+
+// Handles periodic polling by human players
+// 	Progresses game by one step if polling player is main 
+//	Allows for step-wise progression through game, synced to single timing source
+
 router.get("/getState/:gameId/:user", async (req, res) => {
-	const gS = await GameState.findById(req.params.gameId);
-	console.log('getState user ' + req.params.user)
+	let gS = await GameState.findById(req.params.gameId);
+
 	// Trigger game progress if user is main user
-	if (gS.mainUser === req.params.user){
-		console.log('main' + gS.mainUser)
+	if (gS.mainUser == req.params.user){
 		console.log('**** getState - progress game')
 		gS = hearts.gameCycle(gS)
-	}
+		// sync new state to DB
+		gS = await GameState.findByIdAndUpdate(req.params.gameId, gS, {
+			new: true,
+		});
+	}else console.log('**** getState - polled')
 	res.json({
 		status: 200,
 		data: gS,
@@ -82,8 +90,11 @@ router.get("/deal/:gameId", async (req, res) => {
 	console.log("state", gameState);
 	// Deal random cards to each player hand
 	gameState = hearts.dealHand(gameState, [...hearts.deck]);
+
+	// TODO transfer this functionality to be directed by gameCycle
 	// Select cards to pass for all computer players
-	gameState = hearts.AISelectPassCards(gameState);
+	// gameState = hearts.AISelectPassCards(gameState);
+	
 	// Write dealt and pass-selected game state to DB and respond with up-to-date state
 	gameState = await GameState.findByIdAndUpdate(
 		req.params.gameId,
