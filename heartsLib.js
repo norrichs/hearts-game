@@ -183,11 +183,11 @@ const selectCard = (gS, user, clickedCardId) => {
 				c.selected = false;
 				return c;
 			});
-			console.log(
-				"check validity of " + clickedCardId,
-				"in hand of ",
-				gS.players[user]
-			);
+			// console.log(
+			// 	"check validity of " + clickedCardId,
+			// 	"in hand of ",
+			// 	gS.players[user]
+			// );
 			if (isValid(user, clickedCardId, gS)) {
 				console.log("Valid!");
 				card.selected = true;
@@ -198,10 +198,10 @@ const selectCard = (gS, user, clickedCardId) => {
 		}
 	}
 
-	console.log(
-		" updated selection",
-		gS.players[user].hand.map((c) => `${c.id} - ${c.selected}`)
-	);
+	// console.log(
+	// 	" updated selection",
+	// 	gS.players[user].hand.map((c) => `${c.id} - ${c.selected}`)
+	// );
 
 	return gS;
 };
@@ -261,28 +261,12 @@ const userPlayCard = (gS, user) => {
 		...hand.splice(hand.map((c) => c.id).indexOf(passes[0]), 1)
 	);
 	gS.players[user].passes = [];
-	// console.log('pre update', gS.playedCards)
-
-	// Set up next action
-	if (gS.playedCards.length === 4) {
-		console.log("played 4, time to eval");
-		gS = evalTrick(gS);
-	} else {
-		console.log("time to do some AI players");
-		gS.activePlayer = (gS.activePlayer + 1) % 4;
-		// console.log('/playCard/ calling AIplayCycle for player: ', gS.activePlayer)
-		gS = AIplayCycle(gS, "random");
-		console.log(
-			"AI cycle complete.  current active player",
-			gS.activePlayer
-		);
-	}
-
+	gS.activePlayer += 1
 	return gS;
 };
 
 const scoreTricks = (trickArray) => {
-	// given an array of tricks, return 1pt per heart and 13pts for the queen of spades
+	// given an array of cards in trick, return 1pt per heart and 13pts for the queen of spades
 
 	// console.log("      scoreTricks array", trickArray);
 	return (
@@ -310,6 +294,7 @@ const evalPass = (gS) => {
 	let passCardsTotal = gS.players.reduce((acc, p) => {
 		return (acc += p.passes.length);
 	}, 0);
+	// TODO - add a conditional and code block to handle a no-pass hand
 	if (passCardsTotal === 12) {
 		// pass cards appropriately
 		const t = gS.turn;
@@ -353,28 +338,29 @@ const evalPass = (gS) => {
 		});
 
 		// Loop through any computer players and pick a card to play
-		if (gS.players[gS.activePlayer].playerType === "computer") {
-			console.log(
-				"/passCards/ calling AIplayCycle for player: ",
-				gS.activePlayer
-			);
-			gS = AIplayCycle(gS, "random");
-			console.log(
-				"AI cycle complete.  current active player",
-				gS.activePlayer
-			);
-		}
+		// TODO - don't do autoplay after pass.  Return to frontend for polling / progress trigger
+		// if (gS.players[gS.activePlayer].playerType === "computer") {
+		// 	console.log(
+		// 		"/passCards/ calling AIplayCycle for player: ",
+		// 		gS.activePlayer
+		// 	);
+		// 	gS = AIplayCycle(gS, "random");
+		// 	console.log(
+		// 		"AI cycle complete.  current active player",
+		// 		gS.activePlayer
+		// 	);
+		// }
 	}
 	return gS;
 };
 
 const evalTrick = (gS) => {
-	console.log("user state at evaltricks", gS.players[0]);
+	// console.log("user state at evaltricks", gS.players[0]);
 	const led = gS.playedCards[0].id[0];
 	//  winning card is highest of led suit
 	console.log(
-		"led: " + led,
-		"filtered and mapped played cards",
+		"     - led: " + led +
+		"played of led",
 		gS.playedCards
 			.filter((c) => c.id[0] === led)
 			.map((c) => parseInt(c.id.substr(1))),
@@ -392,18 +378,8 @@ const evalTrick = (gS) => {
 				.filter((c) => c.id[0] === led)
 				.map((c) => parseInt(c.id.substr(1)))
 		);
-
-	console.log("current played cards", gS.playedCards);
-	console.log("	eval top card", topCard);
 	const winner =
 		(gS.firstPlayer + gS.playedCards.map((c) => c.id).indexOf(topCard)) % 4;
-
-	console.log(
-		"winner",
-		winner,
-		"current tricks",
-		gS.players[winner].tricks.length
-	);
 
 	// Move played cards to winner's tricks array
 	gS.players[winner].tricks = [
@@ -412,12 +388,12 @@ const evalTrick = (gS) => {
 	];
 
 	console.log(
-		"****  winner: ",
+		"      ****  winner: ",
 		gS.players[winner].name,
 		"with card",
 		topCard,
 		"current tricks",
-		gS.players[winner].tricks
+		gS.players[winner].tricks.map(c=>c.id)
 	);
 
 	// Check for moon shot
@@ -429,9 +405,10 @@ const evalTrick = (gS) => {
 		// deal new hand
 	} else {
 		// Update winning player
-		const trickScore = gS.playedCards.filter((c) => c.id[0] === "h");
-		gS.players[winner].handScore += trickScore;
-		// gS.players[winner].gameScore += trickScore;
+		const heartScore = gS.playedCards.filter((c) => c.id[0] === "h").length;
+		const queenScore = gS.playedCards.filter(c=>c.id === 's12').length
+		gS.players[winner].handScore += (heartScore + queenScore);
+		gS.players[winner].gameScore += (heartScore + queenScore)
 		gS.players[winner].passes = [];
 
 		// Update other players
@@ -441,12 +418,12 @@ const evalTrick = (gS) => {
 				p.handScore = scoreTricks(p.tricks);
 				p.passes = [];
 			});
+		gS.heartsBroken = !gS.heartsBroken && heartScore > 0 ? true : gS.heartsBroken
 
 		// Reset general gamestate for next trick and set activePlayer
 		gS.turn = 0;
 		gS.phase = "trick";
 		gS.activePlayer = winner;
-		// gS.heartsBroken
 		// gS.handNum
 		gS.trickNum = gS.trickNum + 1;
 		(gS.maxScore = Math.max(gS.players.map((p) => parseInt(p.gameScore)))),
@@ -456,6 +433,16 @@ const evalTrick = (gS) => {
 		// playerOrder: [ 0, 1, 2, 3],
 		gS.playedCards = [];
 		gS.players.forEach((p) => {});
+	}
+	if(gS.trickNum === 14){
+		console.log("****  hand " + gS.handNum + ' complete!')
+		gS.handNum += 1
+		if(gS.gameScore >= gS.winScore){
+			gS.phase = 'game-complete'
+		}else{
+			gS.phase = 'hand-complete'
+		}
+	
 	}
 	// console.log("****  evalTrick return state", gS);
 	return gS;
@@ -496,13 +483,13 @@ const isValid = (user, clickedCardId, gS) => {
 				(c) => c.id[0] === gS.playedCards[0].id[0]
 			).length === 0
 		) {
-			console.log(
-				"played, filtered user hand",
-				gS.playedCards,
-				gS.players[user].hand.filter(
-					(c) => c.id[0] === gS.playedCards[0].id[0]
-				)
-			);
+			// console.log(
+			// 	"played, filtered user hand",
+			// 	gS.playedCards,
+			// 	gS.players[user].hand.filter(
+			// 		(c) => c.id[0] === gS.playedCards[0].id[0]
+			// 	)
+			// );
 			return true;
 		} else return false;
 	}
@@ -564,7 +551,7 @@ const AISelectPassCards = (gS) => {
 	return gS;
 };
 
-const AIplayCycle = (gS) => {
+const AIplayCycle_Deprecated = (gS) => {
 	let activePlayer = gS.players[gS.activePlayer];
 	let activePlayerType = activePlayer.playerType;
 	let strategy = activePlayer.strategy;
@@ -595,7 +582,6 @@ const AIplayCycle = (gS) => {
 };
 
 const AIplayCard = (gS, strategy) => {
-	// let gS = gameState
 	const p = gS.players[gS.activePlayer];
 	// reset selections
 	p.hand = p.hand.map((c) => {
@@ -603,7 +589,7 @@ const AIplayCard = (gS, strategy) => {
 		return c;
 	});
 
-	if (strategy === "random") {
+	if (p.strategy === "random") {
 		// console.log(
 		// 	"    picking random card for"+ p.name + 'hand', p.hand.map(c=>c.id)
 		// );
@@ -654,9 +640,21 @@ const gameCycle = (gS) => {
 	} else if (gS.phase === "trick") {
 		//	PLAYS - each time pick card for next computer player
 		console.log("   - trick");
+		// Check if all cards played.  If so, evaluate the trick
+		//	IF not, play a card and increment active player
+		//		Check if all played again and evaluate if so
+		console.debug('      played: ' + gS.playedCards.map(c=>c.id) + ' - active' + gS.activePlayer)
+		if (gS.playedCards.length === 4) {
+			console.log("     - all 4 played");
+			gS = evalTrick(gS);
+		} else if(gS.players[gS.activePlayer].playerType === 'computer'){
+			console.log("     - play for: ", gS.players[gS.activePlayer].name);
+			gS = AIplayCard(gS);
+			gS.activePlayer = (gS.activePlayer + 1) % 4;
+		}
 	} else {
 		//  EVAL trick
-		console.log("   - eval?");
+		console.log("   - ?");
 	}
 
 	return gS;
@@ -674,6 +672,6 @@ module.exports = {
 	userPlayCard,
 	AISelectPassCards,
 	AIplayCard,
-	AIplayCycle,
+	// AIplayCycle,
 	gameCycle,
 };
