@@ -259,6 +259,30 @@ const scoreTricks = (trickArray) => {
 	);
 };
 
+const userPlayCard = (gS, user) => {
+	const hand = gS.players[user].hand
+	const passes = gS.players[user].passes
+	// Splice selected card from hand and push to playedCards
+	gS.playedCards.push(...hand.splice(hand.map(c=>c.id).indexOf(passes[0]), 1))
+	gS.players[user].passes = []
+	// console.log('pre update', gS.playedCards)
+
+	// Set up next action
+	if(gS.playedCards.length === 4){
+		console.log('played 4, time to eval')
+		gS = evalTrick(gS)
+	}else{
+		console.log('time to do some AI players')
+		gS.activePlayer = (gS.activePlayer + 1) % 4
+		// console.log('/playCard/ calling AIplayCycle for player: ', gS.activePlayer)
+		gS = AIplayCycle(gS, 'random')
+		console.log('AI cycle complete.  current active player', gS.activePlayer)
+	}
+
+
+	return gS
+}
+
 const isMoonShot = (gS) => {
 	// console.log(
 	// 	"isMoonShot tricks",
@@ -481,7 +505,7 @@ const randOfSize = (size) => Math.floor(Math.random() * size);
 // * AI pass card
 //		Stub function - choose 3 random cards to pass
 
-const selectAIPassCards = (gameState) => {
+const AISelectPassCards = (gameState) => {
 	// Check Hand number for passing status
 	//   (pass turn 0, 1, 2, not 3, 4, 5, 6, not 7, etc)
 	const protoHand = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -574,12 +598,13 @@ module.exports = {
 	deck,
 	dealHand,
 	passMap,
-	selectAIPassCards,
 	compareCards,
-	AIplayCard,
 	isValid,
 	evalTrick,
 	evalPass,
 	selectCard,
+	userPlayCard,
+	AISelectPassCards,
+	AIplayCard,
 	AIplayCycle,
 };
