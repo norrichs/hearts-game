@@ -14,7 +14,7 @@
 	"playedCards": [],
 	"players" : [
 		{
-			"name" : "player 0",
+			"name" : "You",
 			"playerType" : "human",
 			"strategy" : "human",
 			"position" : 0,
@@ -26,7 +26,7 @@
 			"tricks": []
 		},
 		{
-			"name" : "player 1",
+			"name" : "Watson",
 			"playerType" : "computer",
 			"strategy" : "random",
 			"position" : 0,
@@ -38,7 +38,7 @@
 			"tricks": []
 		},
 		{
-			"name" : "player 2",
+			"name" : "Deepmind",
 			"playerType" : "computer",
 			"strategy" : "random",
 			"position" : 0,
@@ -50,7 +50,7 @@
 			"tricks": []
 		},
 		{
-			"name" : "player 3",
+			"name" : "HAL",
 			"playerType" : "computer",
 			"strategy" : "random",
 			"position" : 0,
