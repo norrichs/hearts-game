@@ -54,12 +54,18 @@ const deck = [
 ];
 
 const passMap = {
-	turn: [
+	handNum: [
+		null,
 		{ player: [2, 3, 0, 1] },
 		{ player: [3, 0, 1, 2] },
 		{ player: [1, 2, 3, 0] },
-		null,
 	],
+	handNumMessage: [
+		'none',
+		'across',
+		'right',
+		'left'
+	]
 };
 
 // * Shuffle and deal
@@ -106,6 +112,10 @@ const dealHand = (gS, deck) => {
 	// playerOrder: [ 0, 1, 2, 3],
 	gS.playedCards = [];
 
+	return gS;
+};
+
+const dealDebug = (gS, debug) => {
 	return gS;
 };
 
@@ -261,7 +271,7 @@ const userPlayCard = (gS, user) => {
 		...hand.splice(hand.map((c) => c.id).indexOf(passes[0]), 1)
 	);
 	gS.players[user].passes = [];
-	gS.activePlayer += 1
+	gS.activePlayer += 1;
 	return gS;
 };
 
@@ -269,6 +279,11 @@ const scoreTricks = (trickArray) => {
 	// given an array of cards in trick, return 1pt per heart and 13pts for the queen of spades
 
 	// console.log("      scoreTricks array", trickArray);
+	console.debug(
+		"calculated tricks score",
+		trickArray.filter((c) => c.id[0] === "h").length +
+			(trickArray.map((c) => c.id).includes("s12") ? 13 : 0)
+	);
 	return (
 		trickArray.filter((c) => c.id[0] === "h").length +
 		(trickArray.map((c) => c.id).includes("s12") ? 13 : 0)
@@ -283,7 +298,11 @@ const isMoonShot = (gS) => {
 	const scoreArray = gS.players.map((p) => {
 		return scoreTricks(p.tricks);
 	});
-	return scoreArray.indexOf(26) === -1 ? false : scoreArray.indexOf(26);
+	console.debug(
+		"isMoonShot",
+		scoreArray.indexOf(26) === -1 ? false : scoreArray.indexOf(26)
+	);
+	return scoreArray.indexOf(26);
 };
 // Triggered by frontend, evaluates gamestate to exchange
 // 	cards per passing map
@@ -297,10 +316,10 @@ const evalPass = (gS) => {
 	// TODO - add a conditional and code block to handle a no-pass hand
 	if (passCardsTotal === 12) {
 		// pass cards appropriately
-		const t = gS.turn;
+		const h = gS.handNum % 4;
 		gS.players = gS.players.map((recipient, i) => {
 			// for each player, move records from donor hand to recipient hand, setting all new cards to 'selected'
-			const donor = gS.players[passMap.turn[t].player[i]];
+			const donor = gS.players[passMap.handNum[h].player[i]];
 
 			donor.passes.forEach((id) => {
 				const srcIndex = donor.hand.map((c) => c.id).indexOf(id);
@@ -353,14 +372,51 @@ const evalPass = (gS) => {
 	}
 	return gS;
 };
+const evalHand = (gS, winType, winner = null) => {
+	if (winType === "moonshot") {
+		console.debug("evaluating moonshot for winner=", winner);
+		console.log("****  " + winner + " shot the moon");
+		// Update player parameters
+		gS.players.map((p, i) => {
+			p.handScore = 0;
+			if (i !== winner) p.gameScore += 26;
+			p.tricks = [];
+
+			return p;
+		});
+	} else if (winType === "regular") {
+		console.debug("evaluating hand", winType, winner);
+		console.log("****  hand " + gS.handNum + " complete!");
+		// Update player parameters
+		gS.players.map((p, i) => {
+			p.gameScore += p.handScore;
+			p.handScore = 0;
+			p.tricks = [];
+			return p;
+		});
+	}
+	//
+	gS.maxScore = Math.max(...gS.players.map((p) => p.gameScore));
+	if (gS.maxScore >= gS.winScore) {
+		gS.phase = "game-complete";
+	} else {
+		// Update general parameters
+		gS.leader = gS.players.map(p=>p.gameScore).indexOf(gS.maxScore)
+		gS.playedCards = [];
+		gS.phase = "hand-complete";
+		gS.heartsBroken = false;
+		gS.turn = 0;
+		gS.trickNum = 1;
+	}
+	return gS;
+};
 
 const evalTrick = (gS) => {
 	// console.log("user state at evaltricks", gS.players[0]);
 	const led = gS.playedCards[0].id[0];
 	//  winning card is highest of led suit
 	console.log(
-		"     - led: " + led +
-		"played of led",
+		"     - led: " + led + "played of led",
 		gS.playedCards
 			.filter((c) => c.id[0] === led)
 			.map((c) => parseInt(c.id.substr(1))),
@@ -393,58 +449,40 @@ const evalTrick = (gS) => {
 		"with card",
 		topCard,
 		"current tricks",
-		gS.players[winner].tricks.map(c=>c.id)
+		gS.players[winner].tricks.map((c) => c.id)
 	);
 
-	// Check for moon shot
-	let moonShotWinner = isMoonShot(gS);
-	if (moonShotWinner) {
-		console.log("****  " + moonShotWinner + " shot the moon");
-		// update state
-		// check game win condition
-		// deal new hand
-	} else {
-		// Update winning player
-		const heartScore = gS.playedCards.filter((c) => c.id[0] === "h").length;
-		const queenScore = gS.playedCards.filter(c=>c.id === 's12').length
-		gS.players[winner].handScore += (heartScore + queenScore);
-		gS.players[winner].gameScore += (heartScore + queenScore)
-		gS.players[winner].passes = [];
+	// Check for moon shot preemptively
+	const moonShotWinner = isMoonShot(gS);
+	if (moonShotWinner != -1) {
+		console.debug("send to evalHand moonshot");
+		gS = evalHand(gS, "moonshot", moonShotWinner);
+	} else if (gS.trickNum < 14) {
+		// Update trick-taking player
+		const hScore = gS.playedCards.filter((c) => c.id[0] === "h").length;
+		const qScore = gS.playedCards.filter((c) => c.id === "s12").length * 13;
+		gS.players[winner].handScore += hScore + qScore;
 
-		// Update other players
-		gS.players
-			.filter((p, i) => i !== winner)
-			.map((p) => {
-				p.handScore = scoreTricks(p.tricks);
-				p.passes = [];
-			});
-		gS.heartsBroken = !gS.heartsBroken && heartScore > 0 ? true : gS.heartsBroken
+		// Update all players
+		gS.players.map((p) => {
+			p.passes = [];
+		});
 
 		// Reset general gamestate for next trick and set activePlayer
+		gS.heartsBroken =
+			!gS.heartsBroken && hScore > 0 ? true : gS.heartsBroken;
 		gS.turn = 0;
 		gS.phase = "trick";
 		gS.activePlayer = winner;
-		// gS.handNum
-		gS.trickNum = gS.trickNum + 1;
-		(gS.maxScore = Math.max(gS.players.map((p) => parseInt(p.gameScore)))),
-			(gS.firstPlayer = winner);
-		// leader: 0,
-		// winScore": 100,
-		// playerOrder: [ 0, 1, 2, 3],
-		gS.playedCards = [];
-		gS.players.forEach((p) => {});
+		gS.firstPlayer = winner;
+		gS.trickNum += 1;
+		gS.playedCards = []
 	}
-	if(gS.trickNum === 14){
-		console.log("****  hand " + gS.handNum + ' complete!')
-		gS.handNum += 1
-		if(gS.gameScore >= gS.winScore){
-			gS.phase = 'game-complete'
-		}else{
-			gS.phase = 'hand-complete'
-		}
-	
+	if (gS.trickNum === 14) {
+		console.debug("send to evalHand regular");
+		gS = evalHand(gS, "regular", null);
 	}
-	// console.log("****  evalTrick return state", gS);
+
 	return gS;
 };
 
@@ -510,8 +548,9 @@ const AISelectPassCards = (gS) => {
 	const limit = 1;
 	let counter = 0;
 
-	if (gS.handNum % 4 < 3) {
-		// TODO refactor to use named 'donor', and only do one per function
+	if (gS.handNum % 4 === 0){
+		gS.phase = 'trick'
+	} else {
 		gS.players.map((donor) => {
 			if (donor.playerType === "computer" && donor.passes.length === 0) {
 				if (counter < limit) {
@@ -590,17 +629,19 @@ const AIplayCard = (gS, strategy) => {
 	});
 
 	if (p.strategy === "random") {
-		// console.log(
+		// console.debug(
 		// 	"    picking random card for"+ p.name + 'hand', p.hand.map(c=>c.id)
 		// );
 		// get set of card that would be valid plays
 		const validCards = gS.players[gS.activePlayer].hand.filter((c) =>
 			isValid(gS.activePlayer, c.id, gS)
 		);
+		// console.debug("    valid set: " + validCards.map(c=>c.id))
 		// get ID of a random card from the valid plays
 		let pickedCardId;
 		try {
 			pickedCardId = validCards[randOfSize(validCards.length)].id;
+			// console.debug('    picked: ' + pickedCardId)
 		} catch {
 			console.log(
 				"failed to pick card from valid",
@@ -611,18 +652,14 @@ const AIplayCard = (gS, strategy) => {
 				gS.activePlayer
 			);
 		}
-
 		// get index of that card in the hand
 		const pickedCardIndex = gS.players[gS.activePlayer].hand
 			.map((c) => c.id)
 			.indexOf(pickedCardId);
 
-		// splice the random, valid card and push onto playedCards array
-
-		// console.log('    valid cards', validCards, 'picked card', p.hand[pickedCardIndex])
 		gS.playedCards.push(...p.hand.splice(pickedCardIndex, 1));
-
-		// console.log('    current playCards', gS.playedCards)
+	} else if (p.strategy === "shooter") {
+		console.log("using shooter strategy");
 	}
 
 	return gS;
@@ -635,19 +672,25 @@ const gameCycle = (gS) => {
 	// Traffic control
 	if (gS.phase === "pass") {
 		// 	PASSES
-		console.log("   - pass");
+		console.log("   - pass.  Hand: " + gS.handNum + " " + passMap.handNumMessage[gS.handNum % 4]);
 		gS = AISelectPassCards(gS);
+		console.debug('   - passed')
 	} else if (gS.phase === "trick") {
 		//	PLAYS - each time pick card for next computer player
 		console.log("   - trick");
 		// Check if all cards played.  If so, evaluate the trick
 		//	IF not, play a card and increment active player
 		//		Check if all played again and evaluate if so
-		console.debug('      played: ' + gS.playedCards.map(c=>c.id) + ' - active' + gS.activePlayer)
+		// console.debug(
+		// 	"      played: " +
+		// 		gS.playedCards.map((c) => c.id) +
+		// 		" - active" +
+		// 		gS.activePlayer
+		// );
 		if (gS.playedCards.length === 4) {
 			console.log("     - all 4 played");
 			gS = evalTrick(gS);
-		} else if(gS.players[gS.activePlayer].playerType === 'computer'){
+		} else if (gS.players[gS.activePlayer].playerType === "computer") {
 			console.log("     - play for: ", gS.players[gS.activePlayer].name);
 			gS = AIplayCard(gS);
 			gS.activePlayer = (gS.activePlayer + 1) % 4;
@@ -674,4 +717,5 @@ module.exports = {
 	AIplayCard,
 	// AIplayCycle,
 	gameCycle,
+	dealDebug,
 };

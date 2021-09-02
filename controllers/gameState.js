@@ -3,6 +3,7 @@ const router = express.Router();
 const GameState = require("../models/gamestate");
 // Game init data
 const gameStateInit = require("../db/seedGameState.json");
+const moonShotInit = require("../db/moonshot.json");
 // Hearts Game Library
 const hearts = require("../heartsLib.js");
 
@@ -86,6 +87,27 @@ router.get("/deal/:gameId", async (req, res) => {
 	// Deal random cards to each player hand
 	gS = hearts.dealHand(gS, [...hearts.deck]);
 	// Write dealt hand to database
+	gS = await GameState.findByIdAndUpdate(req.params.gameId, gS, {
+		new: true,
+	});
+	res.json({
+		status: 200,
+		data: gS,
+	});
+});
+
+// Deal a non-random hand for debugging purposes
+router.get("/debug/:gameId/:statefile", async (req, res) => {
+
+	let gS = {}
+	switch (req.params.statefile) {
+		case "moonshot":
+			gS = moonShotInit;
+			break;
+		case "endhand":
+			gS = endHandInit
+			break;
+	}
 	gS = await GameState.findByIdAndUpdate(req.params.gameId, gS, {
 		new: true,
 	});

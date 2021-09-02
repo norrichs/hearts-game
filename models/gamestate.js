@@ -24,7 +24,6 @@ const gameStateSchema = new Schema({
 		position: Number,
 		handScore: Number,
 		gameScore: Number,
-		selectedCard: String,
 		hand: [{
 			id: String,
 			selected: Boolean
