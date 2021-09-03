@@ -1,6 +1,6 @@
 {
 	"turn" : 0,
-	"phase": "start",
+	"phase": "open",
 	"activePlayer": 0,
 	"heartsBroken" : false,
 	"handNum" : 0,
@@ -14,9 +14,9 @@
 	"playedCards": [],
 	"players" : [
 		{
-			"name" : "You",
-			"playerType" : "human",
-			"strategy" : "human",
+			"name" : "A Trained Chicken",
+			"playerType" : "computer",
+			"strategy" : "random",
 			"position" : 0,
 			"handScore": 0,
 			"gameScore": 0,

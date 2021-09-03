@@ -10,10 +10,35 @@ const hearts = require("../heartsLib.js");
 // Get Gamestate
 //	TODO configure alt SHOW route if multiple games allowed on server e.g. leaderboard, etc
 
+
+
+
+
+// INDEX route
+router.get("/listGames/", async (req, res) => {
+	let games = await GameState.find({})
+	res.json({
+		status: 200,
+		data: games
+	})
+})
+
+// RESET db
+router.get("/clear/", async (req, res) => {
+	let clear = await GameState.deleteMany({})
+	res.json({
+		status: 200,
+		data: clear
+	})
+})
+
+
+
+
+
 // Handles periodic polling by human players
 // 	Progresses game by one step if polling player is main
 //	Allows for step-wise progression through game, synced to single timing source
-
 router.get("/getState/:gameId/:user", async (req, res) => {
 	let gS = await GameState.findById(req.params.gameId);
 
@@ -32,6 +57,7 @@ router.get("/getState/:gameId/:user", async (req, res) => {
 	});
 });
 
+// get current state and initialize card passing logic
 router.get("/passCards/:gameId", async (req, res) => {
 	console.log("passCards route");
 	// Sync current gameState
