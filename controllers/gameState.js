@@ -57,6 +57,20 @@ router.get("/getState/:gameId/:user", async (req, res) => {
 	});
 });
 
+router.get("/updateGameState/:gameId/:user/:name/:mainUser", async (req, res) => {
+	const {gameId, user, name, mainUser} = req.params
+	let gS = await GameState.findById(gameId)
+	if(mainUser === user) gS.mainUser = parseInt(user)
+	gS.players[user].name = name
+	gS.players[user].playerType = 'human'
+	gS.players[user].strategy = 'human'
+	gS = await GameState.findByIdAndUpdate(req.params.gameId, gS, {new: true})
+	res.json({
+		status: 200,
+		data: gS
+	})
+})
+
 // get current state and initialize card passing logic
 router.get("/passCards/:gameId", async (req, res) => {
 	console.log("passCards route");
