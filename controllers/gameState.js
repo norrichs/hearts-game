@@ -33,13 +33,20 @@ router.get("/clear/", async (req, res) => {
 })
 
 
-
-
+// SHOW route
+router.get("/getState/:gameId", async (req, res) => {
+	let gS = await GameState.findById(req.params.gameId);
+	
+	res.json({
+		status: 200,
+		data: gS,
+	});
+});
 
 // Handles periodic polling by human players
 // 	Progresses game by one step if polling player is main
 //	Allows for step-wise progression through game, synced to single timing source
-router.get("/getState/:gameId/:user", async (req, res) => {
+router.get("/pollState/:gameId/:user", async (req, res) => {
 	let gS = await GameState.findById(req.params.gameId);
 
 	// Trigger game progress if user is main user
