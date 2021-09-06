@@ -65,9 +65,13 @@ router.get("/pollState/:gameId/:user", async (req, res) => {
 });
 
 router.get("/updateGameState/:gameId/:user/:name/:mainUser", async (req, res) => {
+	console.log('updateGameState params', req.params)
 	const {gameId, user, name, mainUser} = req.params
 	let gS = await GameState.findById(gameId)
-	if(mainUser === user) gS.mainUser = parseInt(user)
+	if(mainUser === user) {
+		gS.mainUser = parseInt(user)
+		console.log('assigned mainUser', gS.mainUser)
+	}
 	gS.players[user].name = name
 	gS.players[user].playerType = 'human'
 	gS.players[user].strategy = 'human'
