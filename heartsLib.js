@@ -315,6 +315,7 @@ const evalPass = (gS) => {
 	}, 0);
 	// TODO - add a conditional and code block to handle a no-pass hand
 	if (passCardsTotal === 12) {
+		console.debug('all cards selected, passing', gS.players.map(p=>p.passes))
 		// pass cards appropriately
 		const h = gS.handNum % 4;
 		gS.players = gS.players.map((recipient, i) => {

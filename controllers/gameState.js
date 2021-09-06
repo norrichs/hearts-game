@@ -10,11 +10,43 @@ const hearts = require("../heartsLib.js");
 // Get Gamestate
 //	TODO configure alt SHOW route if multiple games allowed on server e.g. leaderboard, etc
 
+
+
+
+
+// INDEX route
+router.get("/listGames/", async (req, res) => {
+	let games = await GameState.find({})
+	res.json({
+		status: 200,
+		data: games
+	})
+})
+
+// RESET db
+router.get("/clear/", async (req, res) => {
+	let clear = await GameState.deleteMany({})
+	res.json({
+		status: 200,
+		data: clear
+	})
+})
+
+
+// SHOW route
+router.get("/getState/:gameId", async (req, res) => {
+	let gS = await GameState.findById(req.params.gameId);
+	
+	res.json({
+		status: 200,
+		data: gS,
+	});
+});
+
 // Handles periodic polling by human players
 // 	Progresses game by one step if polling player is main
 //	Allows for step-wise progression through game, synced to single timing source
-
-router.get("/getState/:gameId/:user", async (req, res) => {
+router.get("/pollState/:gameId/:user", async (req, res) => {
 	let gS = await GameState.findById(req.params.gameId);
 
 	// Trigger game progress if user is main user
@@ -32,6 +64,25 @@ router.get("/getState/:gameId/:user", async (req, res) => {
 	});
 });
 
+router.get("/updateGameState/:gameId/:user/:name/:mainUser", async (req, res) => {
+	console.log('updateGameState params', req.params)
+	const {gameId, user, name, mainUser} = req.params
+	let gS = await GameState.findById(gameId)
+	if(mainUser === user) {
+		gS.mainUser = parseInt(user)
+		console.log('assigned mainUser', gS.mainUser)
+	}
+	gS.players[user].name = name
+	gS.players[user].playerType = 'human'
+	gS.players[user].strategy = 'human'
+	gS = await GameState.findByIdAndUpdate(req.params.gameId, gS, {new: true})
+	res.json({
+		status: 200,
+		data: gS
+	})
+})
+
+// get current state and initialize card passing logic
 router.get("/passCards/:gameId", async (req, res) => {
 	console.log("passCards route");
 	// Sync current gameState
