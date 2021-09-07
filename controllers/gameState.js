@@ -32,6 +32,14 @@ router.get("/clear/", async (req, res) => {
 	})
 })
 
+// DELETE route
+router.get("/delete/:gameId", async (req, res) => {
+	let deleted = await GameState.deleteOne({_id: req.params.gameId})
+	res.json({
+		status: 200,
+		data: deleted
+	})
+})
 
 // SHOW route
 router.get("/getState/:gameId", async (req, res) => {
